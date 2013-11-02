@@ -93,6 +93,12 @@ class AuditLog(object):
             if not field.name in self._exclude:
                 
                 field  = copy.deepcopy(field)
+
+                if isinstance(field, models.ForeignKey):
+                    #we cannot have foreign keys since the original instance may be deleted at some time
+                    rel_field = field.rel.get_related_field()
+                    cls = models.IntegerField if isinstance(rel_field, models.AutoField) else rel_field.__class__
+                    field = cls(name=field.attname, db_index=True, null=field.null, blank=field.null)
             
                 if isinstance(field, models.AutoField):
                     #we replace the AutoField of the original model
