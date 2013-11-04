@@ -96,7 +96,12 @@ class AuditLog(object):
 
                 if isinstance(field, models.ForeignKey):
                     #we cannot have foreign keys since the original instance may be deleted at some time
-                    rel_field = field.rel.get_related_field()
+                    rel_field = None
+                    rel_field_name = field.rel.field_name
+                    for rf in field.rel.to._meta.fields:
+                        if rf.name == rel_field_name:
+                            rel_field = rf
+                    assert(rel_field is not None)
                     cls = models.IntegerField if isinstance(rel_field, models.AutoField) else rel_field.__class__
                     field = cls(name=field.attname, db_index=True, null=field.null, blank=field.null)
             
